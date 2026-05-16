@@ -29,6 +29,23 @@ proxy-providers:
 
 大部分地区分组使用 `include-all: true`，会自动读取所有订阅里的节点；节点能否进入香港/美国/家宽等分组，主要取决于节点名称是否匹配对应 `filter`。
 
+## Emby 分流
+
+模板内置 `🎞️ Emby` 分组，并引用 blackmatrix7 的公开 Emby 规则：
+
+```yaml
+RULE-SET,Emby,🎞️ Emby
+```
+
+如果你有私人 Emby 服务器域名，建议只在本地 `config.local.yaml` 的 `rules:` 里追加，不要上传到公开仓库：
+
+```yaml
+rules:
+  - DOMAIN-SUFFIX,你的私有Emby域名,🎞️ Emby
+```
+
+这条自定义规则需要放在 `RULE-SET,GlobalMedia,🌍 国外媒体` 和 `MATCH` 之前。
+
 ## DNS 防泄漏
 
 `template.yaml` 默认使用严格防泄漏模式：
