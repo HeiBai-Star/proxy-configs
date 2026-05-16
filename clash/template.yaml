@@ -182,16 +182,19 @@ dns:
   nameserver:
     - https://dns.google/dns-query#🚀 节点选择&h3=false
     - https://cloudflare-dns.com/dns-query#🚀 节点选择&h3=false
-  proxy-server-nameserver: 
-    - https://dns.alidns.com/dns-query#DIRECT
-    - https://doh.pub/dns-query#DIRECT&h3=false
-  direct-nameserver: 
-    - https://dns.alidns.com/dns-query#DIRECT
-    - https://doh.pub/dns-query#DIRECT&h3=false
+  # 严格防泄漏模式：所有目标域名解析都走代理侧 DNS。
+  # 如果你的订阅节点服务器全部是域名，且客户端启动失败，可把 proxy-server-nameserver
+  # 暂时改回国内 DoH #DIRECT 用作启动解析。
+  proxy-server-nameserver:
+    - https://dns.google/dns-query#🚀 节点选择&h3=false
+    - https://cloudflare-dns.com/dns-query#🚀 节点选择&h3=false
+  direct-nameserver:
+    - https://dns.google/dns-query#🚀 节点选择&h3=false
+    - https://cloudflare-dns.com/dns-query#🚀 节点选择&h3=false
   nameserver-policy:
     "rule-set:cn_domain": 
-      - https://dns.alidns.com/dns-query#DIRECT
-      - https://doh.pub/dns-query#DIRECT&h3=false
+      - https://dns.google/dns-query#🚀 节点选择&h3=false
+      - https://cloudflare-dns.com/dns-query#🚀 节点选择&h3=false
 
 proxy-groups:
   - {name: 🐸 手动切换, type: select, include-all: true, filter: "(?i)^(?!.*(direct))"}
