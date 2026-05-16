@@ -1,0 +1,9 @@
+# Local Clash/Mihomo files with real subscription URLs or downloaded providers
+clash/config.local.yaml
+clash/proxies/
+clash/rule_providers/
+clash/rules/
+
+# Local app/runtime state
+*.log
+*.tmp

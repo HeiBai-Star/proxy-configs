@@ -1,0 +1,472 @@
+
+# Clash/Mihomo 通用模板
+#
+# 公开仓库安全约定：
+# - 不要在本文件里填写真实机场订阅、节点密码、token。
+# - 如需本地使用，复制为 config.local.yaml 后再填写订阅地址，并把 config.local.yaml 加入 .gitignore。
+# - 本模板默认按“个人设备、防 DNS 泄漏优先”收紧；需要局域网共享时再手动打开 allow-lan。
+
+proxy-providers:
+  主用机场:
+    type: http
+    url: ""
+    path: ./proxies/main.yaml
+    interval: 86400
+    override:
+      udp: true
+      skip-cert-verify: false
+    health-check:
+      enable: true
+      url: http://cp.cloudflare.com/generate_204
+      interval: 600
+  备用机场:
+    type: http
+    url: ""
+    path: ./proxies/backup.yaml
+    interval: 86400
+    override:
+      udp: true
+      skip-cert-verify: false
+    health-check:
+      enable: true
+      url: http://cp.cloudflare.com/generate_204
+      interval: 600
+  家宽机场:
+    type: http
+    url: ""
+    path: ./proxies/residential.yaml
+    interval: 86400
+    override:
+      udp: true
+      skip-cert-verify: false
+    health-check:
+      enable: true
+      url: http://cp.cloudflare.com/generate_204
+      interval: 600
+
+
+
+
+global-ua: clash.meta
+
+
+mode: rule
+log-level: info
+ipv6: false
+allow-lan: false
+mixed-port: 7890
+unified-delay: true
+tcp-concurrent: true
+external-controller: 127.0.0.1:9090
+external-ui: ui
+external-ui-url: "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"
+find-process-mode: strict
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+geox-url:               
+  geoip: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat
+  geosite: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
+  mmdb: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb
+  asn: https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb
+geo-auto-update: true   
+geo-update-interval: 24
+disable-keep-alive: false
+keep-alive-idle: 60       # 对齐内核 tcp_keepalive_time=60
+keep-alive-interval: 15   # 略宽于内核的 10s，适配 WAN 环境
+
+sniffer:
+  enable: true
+  parse-pure-ip: true
+  override-destination: false
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+      override-destination: false
+    QUIC:
+      ports: [443, 8443]
+      override-destination: false
+  skip-domain: # 忽略嗅探
+    - 'rule-set:cn_lite,cn_domain,private'
+    - 'Mijia Cloud'
+    - '+.push.apple.com'
+    - '+.wechat.com'
+    - '+.qpic.cn'
+    - '+.qq.com'
+    - '+.wechatapp.com'
+    #  语音通信
+    - '+.vivox.com'
+    # 向日葵服务
+    - '+.oray.com'
+    - '+.sunlogin.net'
+  skip-src-address: 
+    - 192.168.0.3/32
+  skip-dst-address:
+    - '91.108.16.0/21'
+    - '91.108.56.0/23'
+    - '149.154.168.0/22'
+    - '2001:b28:f23c::/48'
+    - '2001:b28:f23f::/48'
+    - '91.108.12.0/22'
+    - '149.154.172.0/22'
+    - '2001:b28:f23d::/48'
+    - '5.28.192.0/18'
+    - '91.105.192.0/23'
+    - '91.108.4.0/22'
+    - '91.108.8.0/22'
+    - '91.108.56.0/22'
+    - '95.161.64.0/20'
+    - '109.239.140.0/24'
+    - '149.154.160.0/21'
+    - '185.76.151.0/24'
+    - '2001:67c:4e8::/48'
+    - '2a0a:f280:203::/48'
+    - "rule-set:cnip"
+
+tun:
+  enable: true
+  stack: system
+  dns-hijack:
+    - "udp://any:53"
+    - "tcp://any:53"
+  auto-route: true
+  auto-redirect: true
+  auto-detect-interface: true
+  
+hosts:
+  dns.alidns.com: [223.5.5.5, 223.6.6.6, 2400:3200::1, 2400:3200:baba::1]
+  doh.pub: [1.12.12.12, 1.12.12.21, 120.53.53.53]
+  dot.pub: [1.12.12.12, 120.53.53.53]
+  dns.google: [8.8.8.8, 8.8.4.4, 2001:4860:4860::8888, 2001:4860:4860::8844]
+  dns11.quad9.net: [9.9.9.11, 149.112.112.11, 2620:fe::11, 2620:fe::fe:11]
+  miwifi.com: [192.168.31.1]
+  dns.cloudflare.com: [1.1.1.1,1.0.0.1]
+  edff3f1a.d.adguard-dns.com: [94.140.14.49]
+
+proxies:
+- name: "direct-v4"
+  type: direct
+  udp: true
+  ip-version: ipv4
+
+- name: "direct-v6"
+  type: direct
+  udp: true
+  ip-version: ipv6-prefer
+
+
+
+dns:
+  enable: true
+  ipv6: false
+  listen: 127.0.0.1:1053
+  use-hosts: true
+  enhanced-mode: fake-ip # redir-host  #fake-ip
+  fake-ip-range: 28.0.0.0/8
+  fake-ip-range6: fc00::/16
+  fake-ip-ttl: 2
+  prefer-h3: false
+  cache-algorithm: arc
+  respect-rules: true
+  fake-ip-filter-mode: rule
+  fake-ip-filter:
+    - RULE-SET,fakeip-filter,real-ip
+    - RULE-SET,apple_cn,real-ip
+    - RULE-SET,apple,real-ip
+    - RULE-SET,Proxy,fake-ip
+    - MATCH,real-ip
+  nameserver:
+    - https://dns.google/dns-query#🚀 节点选择&h3=false
+    - https://cloudflare-dns.com/dns-query#🚀 节点选择&h3=false
+  proxy-server-nameserver: 
+    - https://dns.alidns.com/dns-query#DIRECT
+    - https://doh.pub/dns-query#DIRECT&h3=false
+  direct-nameserver: 
+    - https://dns.alidns.com/dns-query#DIRECT
+    - https://doh.pub/dns-query#DIRECT&h3=false
+  nameserver-policy:
+    "rule-set:cn_domain": 
+      - https://dns.alidns.com/dns-query#DIRECT
+      - https://doh.pub/dns-query#DIRECT&h3=false
+
+proxy-groups:
+  - {name: 🐸 手动切换, type: select, include-all: true, filter: "(?i)^(?!.*(direct))"}
+  - {name: 📢 广告拦截, type: select, proxies: [REJECT, PASS]}
+  - {name: 🛜 ipv6, type: select, proxies: [REJECT, PASS]}
+
+  - {name: 🏀 NBA, type: select, proxies: [🐸 手动切换, ⭐ 香港自动, 🔯 香港故转, 🕊️ 低倍率节点, 🇨🇳 台湾节点]}
+  - {name: 🌼 油管视频, type: select, proxies: [❄ 谷歌服务, 🐸 手动切换, 🕊️ 低倍率节点, 🇺🇲 美国节点, 🏡 家宽直连, 🇭🇰 香港节点, ⭐ 美国自动, ⭐ 香港自动]}
+
+  - {name: 🐟 漏网之鱼, type: select, proxies: [🐸 手动切换, 🇺🇲 美国节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点, 🇭🇰 香港节点, 🎯 全球直连, 🔴 低倍率故转, 🏡 家宽直连, 🌐 其他地区, 🚀 节点选择]}
+  - {name: 📲 Telegram, type: select, proxies: [🇸🇬 新加坡节点, 🔯 新加坡故转, 🇭🇰 香港节点, 🐸 手动切换]}
+  - {name: ❄ 谷歌服务, type: select, proxies: [🇺🇲 美国节点, 🔯 美国故转, 🔯 香港故转, 🔯 新加坡故转, 🇭🇰 香港节点, 🐸 手动切换]}
+
+  - {name: 🚀 节点选择, type: select, proxies: [🇺🇲 美国节点, 🔯 美国故转, 🔯 香港故转, 🔯 新加坡故转, 🇭🇰 香港节点, 🐸 手动切换]}
+  - {name: 🎮 游戏平台, type: select, proxies: [🎯 全球直连, 🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点, 🐸 手动切换]}
+  - {name: 🌍 国外媒体, type: select, proxies: [🇨🇳 台湾节点, 🇸🇬 新加坡节点, 🔯 新加坡故转, ⭐ 新加坡自动, 🕊️ 低倍率节点, 🌐 其他地区, 🐸 手动切换, 🎯 全球直连]}
+  - {name: 🤖 AI, type: select, proxies: [🏡 家宽直连, 🔯 美国故转, 🚀 节点选择, 🇺🇲 美国节点, 🇯🇵 日本节点]}
+  - {name: 🪟 Microsoft, type: select, proxies: [🔯 日本故转, 🔴 低倍率故转, 🇯🇵 日本节点, 🎯 全球直连, 🕊️ 低倍率节点, 🚀 节点选择, 🔯 美国故转, 🔯 香港故转, 🐸 手动切换]}
+  - {name: 🍎 Apple, type: select, proxies: [🎯 全球直连, 🇺🇲 美国节点, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点, 🐸 手动切换, 🚀 节点选择]}
+
+  - {name: 🌐 其他地区, type: select, include-all: true, filter: "(?i)^(?!.*(direct|HK|🇭🇰|香港|Hong Kong|TW|🇨🇳|🇹🇼|台湾|台灣|Taiwan|SG|🇸🇬|新加坡|狮城|Singapore|JP|🇯🇵|日本|Japan|US|USA|美国|🇺🇸|美國|United States|Germany|DE|DEU|GER|Deutschland|Bundesrepublik Deutschland|德国|德國|🇩🇪|France|FR|FRA|French Republic|法国|法國|🇫🇷|法兰西|法蘭西|Italy|IT|ITA|Italia|Italian Republic|意大利|義大利|🇮🇹|Netherlands|Holland|NL|NLD|Nederland|Kingdom of the Netherlands|荷兰|荷蘭|🇳🇱))"}
+  - {name: 🏡 家宽直连, type: select, include-all: true, filter: "(?i)^(?!.*(direct|HK|香港|🇭🇰|Hong Kong)).*(直连|家庭|Home|家宽)"}
+  - {name: 🌌 三星服务, type: select, proxies: [🇸🇬 新加坡节点, 🎯 全球直连, 🐸 手动切换, 🇭🇰 香港节点, 🔴 低倍率故转, 🏡 家宽直连, 🌐 其他地区, 🚀 节点选择]}
+  - {name: 🛜 下载流量, type: select, proxies: [🎯 全球直连, 🐸 手动切换, 🇭🇰 香港节点, 🔴 低倍率故转, 🏡 家宽直连, 🌐 其他地区, 🚀 节点选择]}
+
+  - {name: 🕊️ 低倍率节点, type: select, include-all: true, filter: "(0.(5|4|3|2|1|05|01))(?:倍|x)?"}
+  - {name: 🔴 低倍率故转, type: fallback, include-all: true, url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 70, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)^(?!.*(JP|🇯🇵|日本|Japan)).*(0.(5|4|3|2|1|05|01))(?:倍|x)?"}
+
+  - {name: 🇭🇰 香港节点, type: select, include-all: true, filter: "HK|🇭🇰|香港|Hong Kong"}
+  - {name: 🇸🇬 新加坡节点, type: select, include-all: true, filter: "SG|🇸🇬|新加坡|狮城|Singapore"}
+  - {name: 🇯🇵 日本节点, type: select, include-all: true, filter: "JP|🇯🇵|日本|Japan|港日"}
+  - {name: 🇨🇳 台湾节点, type: select, include-all: true, filter: "TW|🇨🇳|🇹🇼|台湾|台灣|Taiwan"}
+  - {name: 🇺🇲 美国节点, type: select, include-all: true, filter: "US|USA|美国|🇺🇸|美國|United States"}
+
+  - {name: 🔯 香港故转, hidden: true, type: fallback, include-all: true, url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 40, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)^(?!.*(转发|10x|20x|Game|广港|沪港|成港|家宽|Home|2x|BK33)).*(HK|🇭🇰|香港|Hong Kong)"}
+  - {name: 🔯 新加坡故转, hidden: true, type: fallback, include-all: true, url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 50, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)SG|🇸🇬|新加坡|狮城|Singapore"}
+  - {name: 🔯 日本故转, hidden: true, type: fallback, include-all: true, url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 50, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)JP|🇯🇵|日本|Japan"}
+  - {name: 🔯 美国故转, hidden: true, type: fallback, include-all: true, url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 80, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)^(?!.*(AUS|RUS|转发|5x|10x|20x|Game|广港|成港|沪日|家宽|2x|Home|zgo)).*(US|USA|美国|🇺🇸|美國|United States)"}
+
+  - {name: ⭐ 香港自动, hidden: true, type: url-test, use: [主用机场, 备用机场, 家宽机场], url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 5, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)HK|🇭🇰|香港|Hong Kong"}
+  - {name: ⭐ 新加坡自动, hidden: true, type: url-test, use: [主用机场, 备用机场, 家宽机场], url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 10, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)SG|🇸🇬|新加坡|狮城|Singapore"}
+  - {name: ⭐ 日本自动, hidden: true, type: url-test, use: [主用机场, 备用机场, 家宽机场], url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 15, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)JP|🇯🇵|日本|Japan"}
+  - {name: ⭐ 美国自动, hidden: true, type: url-test, use: [主用机场, 备用机场, 家宽机场], url: http://cp.cloudflare.com/generate_204, interval: 300, tolerance: 20, timeout: 3000, max-failed-times: 3, lazy: true, filter: "(?i)US|USA|美国|🇺🇸|美國|United States"}
+
+  - {name: 🎯 全球直连, hidden: true, type: select, proxies: [direct-v4, direct-v6], url: http://www.qualcomm.cn/generate_204, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
+
+
+anchor_rule_providers_classical_mrs: &anchor_rule_providers_classical_mrs {type: http, behavior: classical, interval: 86400, format: mrs}     # 经典规则集配置_mrs
+anchor_rule_providers_classical_text: &anchor_rule_providers_classical_text {type: http, behavior: classical, interval: 86400, format: text}  # 经典规则集配置_text，即“.list”
+anchor_rule_providers_classical_yaml: &anchor_rule_providers_classical_yaml {type: http, behavior: classical, interval: 86400, format: yaml}  # 经典规则集配置_yaml
+
+anchor_rule_providers_domain_mrs: &anchor_rule_providers_domain_mrs {type: http, behavior: domain, interval: 86400, format: mrs}              # 域名规则集配置_mrs
+anchor_rule_providers_domain_text: &anchor_rule_providers_domain_text {type: http, behavior: domain, interval: 86400, format: text}           # 域名规则集配置_text，即“.list”
+anchor_rule_providers_domain_yaml: &anchor_rule_providers_domain_yaml {type: http, behavior: domain, interval: 86400, format: yaml}           # 域名规则集配置_yaml
+
+anchor_rule_providers_ipcidr_mrs: &anchor_rule_providers_ipcidr_mrs {type: http, behavior: ipcidr, interval: 86400, format: mrs}              # IP-CIDR 规则集配置_mrs
+anchor_rule_providers_ipcidr_text: &anchor_rule_providers_ipcidr_text {type: http, behavior: ipcidr, interval: 86400, format: text}           # IP-CIDR 规则集配置_text，即“.list”
+anchor_rule_providers_ipcidr_yaml: &anchor_rule_providers_ipcidr_yaml {type: http, behavior: ipcidr, interval: 86400, format: yaml}           # IP-CIDR 规则集配置_yaml
+
+rule-providers:
+  ad:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://raw.githubusercontent.com/echs-top/proxy/main/rules/mrs/AWAvenue-Ads_domain.mrs
+    path: ./rule_providers/ad.mrs
+  kreject: 
+    <<: *anchor_rule_providers_classical_text
+    url: https://raw.githubusercontent.com/KevinChen222/rule-/refs/heads/main/kreject.list
+    path: ./rule_providers/kreject.list
+  httpdns: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/httpdns.mrs
+    path: ./rule_providers/httpdns.mrs
+  httpdns_cn: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-httpdns-cn.mrs
+    path: ./rule_providers/httpdns_cn.mrs
+  fakeip-filter:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/fakeip-filter.mrs
+    path: ./rules/fakeip-filter.mrs
+  YouTube:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/youtube.mrs
+    path: ./rule_providers/YouTube.mrs
+  nba: 
+    <<: *anchor_rule_providers_classical_text
+    url: https://raw.githubusercontent.com/KevinChen222/rule-/refs/heads/main/NBA.list
+    path: ./rule_providers/nba.list
+  directkevin: 
+    <<: *anchor_rule_providers_classical_text
+    url: https://raw.githubusercontent.com/KevinChen222/rule-/refs/heads/main/DirectKevin.list
+    path: ./rule_providers/directkevin.list
+  samsung: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/samsung.mrs
+    path: ./rule_providers/samsung.mrs
+  telegram_ip:
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/telegramip.list
+    path: ./rule_providers/telegramip.mrs
+  Telegram: 
+    <<: *anchor_rule_providers_classical_yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Telegram/Telegram_No_Resolve.yaml
+    path: ./rule_providers/Telegram.yaml
+  proxylite: 
+    <<: *anchor_rule_providers_classical_text
+    url: https://raw.githubusercontent.com/KevinChen222/rule-/refs/heads/main/ProxyLite.list
+    path: ./rule_providers/proxylite.list
+  ai: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ai.mrs
+    path: ./rule_providers/ai.mrs
+  ai_ip: 
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta/geo/geoip/ai.mrs
+    path: ./rule_providers/ai_ip.mrs
+  private: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/private.mrs
+    path: ./rule_providers/private.mrs
+  private_ip: 
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/privateip.mrs
+    path: ./rule_providers/private_ip.mrs
+  Google: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs
+    path: ./rule_providers/google.mrs
+  Google_ip: 
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs
+    path: ./rule_providers/Google_ip.mrs
+  Microsoft:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs
+    path: ./rule_providers/Microsoft.mrs
+  apple_cn:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/666OS/rules/raw/release/mihomo/domain/AppleCN.mrs
+    path: ./rule_providers/apple_cn.mrs
+  apple:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/666OS/rules/raw/release/mihomo/domain/Apple.mrs
+    path: ./rule_providers/apple.mrs
+  GameDownloadCN:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/games-cn.mrs
+    path: ./rule_providers/GameDownloadCN.mrs
+  Games:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/games.mrs
+    path: ./rule_providers/games.mrs
+  Games_ip: 
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/gamesip.mrs
+    path: ./rule_providers/games_ip.mrs
+  TikTok:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/tiktok.mrs
+    path: ./rule_providers/TikTok.mrs
+  netflix: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/netflix.mrs
+    path: ./rule_providers/netflix.mrs
+  netflix_ip: 
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/netflixip.mrs
+    path: ./rule_providers/netflix_ip.mrs
+  GlobalMedia: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/media.mrs
+    path: ./rule_providers/GlobalMedia.mrs
+  media_ip: 
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/mediaip.mrs
+    path: ./rule_providers/media_ip.mrs
+  applications:
+    <<: *anchor_rule_providers_classical_yaml
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/applications.list
+    path: ./rule_providers/applications.yaml
+  bytedance:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bytedance.mrs
+    path: ./rule_providers/ByteDance.mrs
+  alibaba:
+    <<: *anchor_rule_providers_classical_yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Alibaba/Alibaba_Classical_No_Resolve.yaml
+    path: ./rule_providers/alibaba.yaml
+  onedrive:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs
+    path: ./rule_providers/onedrive.mrs
+  PrivateTracker:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/trackerslist.mrs
+    path: ./rule_providers/PrivateTracker.mrs
+  Meta_ip:
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/facebook.mrs
+    path: ./rule_providers/Meta_ip.mrs
+  twitter_ip:
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://github.com/666OS/rules/raw/release/mihomo/ip/SocialMedia.mrs
+    path: ./rule_providers/twiter_ip.mrs
+  tld_Proxy:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/tld-proxy.mrs
+    path: ./rule_providers/tld_Proxy.mrs
+  speedtest:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/networktest.mrs
+    path: ./rule_providers/speedtest.mrs
+  Proxy:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/proxy.mrs
+    path: ./rule_providers/Proxy.mrs
+  cn_domain: 
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cn.mrs
+    path: ./rule_providers/China_domain.mrs
+  cn_lite:
+    <<: *anchor_rule_providers_domain_mrs
+    url: https://github.com/echs-top/proxy/raw/refs/heads/main/rules/mrs/cn_domain.mrs
+    path: ./rule_providers/cn_lite.mrs
+  cnip:
+    <<: *anchor_rule_providers_ipcidr_mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cnip.mrs
+    path: ./rule_providers/ChinaIPs.mrs
+
+rules:
+  - RULE-SET,ad,📢 广告拦截
+  # - AND,((DST-PORT,443),(NETWORK,UDP),(RULE-SET,Proxy)),REJECT
+  # - AND,((DST-PORT,443),(NETWORK,UDP),(RULE-SET,cnip)),🎯 全球直连
+  - AND,((DST-PORT,443),(NETWORK,UDP)),REJECT
+  - IP-CIDR,28.0.0.0/8,REJECT,no-resolve # 防止 fake-ip 模式下网络回环
+  - IP-CIDR6,::/0,🛜 ipv6,no-resolve
+  - RULE-SET,kreject,📢 广告拦截
+  - RULE-SET,httpdns,📢 广告拦截
+  - RULE-SET,httpdns_cn,📢 广告拦截
+  - RULE-SET,YouTube,🌼 油管视频
+  - RULE-SET,Google,❄ 谷歌服务 
+  - RULE-SET,private,🎯 全球直连
+  - RULE-SET,directkevin,🎯 全球直连
+  - RULE-SET,proxylite,🐟 漏网之鱼
+  - RULE-SET,nba,🏀 NBA
+  - RULE-SET,Telegram,📲 Telegram
+  - RULE-SET,onedrive,🪟 Microsoft
+  - RULE-SET,Microsoft,🪟 Microsoft
+  - RULE-SET,bytedance,🎯 全球直连
+  - RULE-SET,apple_cn,🎯 全球直连
+  - RULE-SET,apple,🍎 Apple
+  - RULE-SET,ai,🤖 AI
+  - RULE-SET,samsung,🌌 三星服务
+  - RULE-SET,GameDownloadCN,🎮 游戏平台
+  - RULE-SET,netflix,🌍 国外媒体
+  - RULE-SET,GlobalMedia,🌍 国外媒体
+  - RULE-SET,Games,🎮 游戏平台
+  - RULE-SET,applications,🎯 全球直连  # 直连软件
+  - RULE-SET,PrivateTracker,🎯 全球直连
+  - RULE-SET,speedtest,🐟 漏网之鱼
+  - RULE-SET,alibaba,🎯 全球直连
+  - RULE-SET,tld_Proxy,🚀 节点选择
+  - RULE-SET,Proxy,🚀 节点选择
+  - RULE-SET,cn_lite,🎯 全球直连
+
+  - RULE-SET,netflix_ip,🌍 国外媒体,no-resolve
+  - IP-ASN,714,🍎 Apple,no-resolve
+  - IP-ASN,6185,🍎 Apple,no-resolve 
+  - RULE-SET,telegram_ip,📲 Telegram,no-resolve
+  - RULE-SET,private_ip,🎯 全球直连,no-resolve
+  - RULE-SET,Google_ip,❄ 谷歌服务,no-resolve
+  - RULE-SET,ai_ip,🤖 AI,no-resolve
+  - RULE-SET,Meta_ip,🚀 节点选择,no-resolve
+  - RULE-SET,twitter_ip,🚀 节点选择,no-resolve
+  - RULE-SET,media_ip,🌍 国外媒体,no-resolve
+  - RULE-SET,Games_ip,🎮 游戏平台,no-resolve
+  - RULE-SET,cnip,🎯 全球直连
+  - MATCH,🐟 漏网之鱼
